@@ -5,21 +5,24 @@ local white="$fg[white]"
 local black="$fg[black]"
 local green="$fg[green]"
 local red="$fg[red]"
-local yellow="$fg[yellow]"
 local gray="$FG[245]"
 local cyan="$fg[cyan]"
+local yellow="$fg[yellow]"
 
 #background
 local background_darkblue="$BG[019]"
 local background_blue="$BG[020]"
 local background_white="$bg[white]"
 local background_red="$bg[red]"
+local background_yellow="$bg[yellow]"
 local background_gray="$BG[245]"
+local background_green="$bg[green]"
 local reset=%{$reset_color%}
 
 local white_on_blue="${white}${background_blue}"
 local white_on_darkblue="${white}${background_darkblue}"
 local white_on_red="${white}${background_red}"
+local white_on_green="${white}${background_green}"
 local white_on_gray="${white}${background_gray}"
 local blue_on_darkblue="${blue}${background_darkblue}"
 local darkblue_on_gray="${darkblue}${background_gray}"
@@ -27,7 +30,6 @@ local darkblue_on_blue="${darkblue}${background_blue}"
 local red_on_white="${red}${background_white}"
 local green_on_white="${green}${background_white}"
 local black_on_white="${black}${background_white}"
-
 
 function get_current_action () {
     local info="$(git rev-parse --git-dir 2>/dev/null)"
@@ -141,9 +143,9 @@ function eval_prompt_callback_if_present {
   : ${git_has_renamed_files_symbol:='[renamed] '}
   : ${git_has_adds_symbol:='[added] '}
   : ${git_has_deletions_symbol:='[deleted] '}
-  : ${git_has_cached_deletions_symbol:='[cache del] '}
+  : ${git_has_cached_deletions_symbol:='[staged deletions] '}
   : ${git_has_modifications_symbol:='[modified] '}
-  : ${git_has_cached_modifications_symbol:='[cache add] '}
+  : ${git_has_cached_modifications_symbol:='[staged modifications] '}
   : ${git_ready_to_commit_symbol:='[ready to commit] '}
   : ${git_is_on_a_tag_symbol:='[tag] '}
   : ${git_needs_to_merge_symbol:='[needs merge] '}
@@ -304,7 +306,7 @@ _git_info(){
 }
 
 __ssh_client(){
-  if [ -n "$SSH_CLIENT" ]; then
+  if [[ -n "$SSH_CLIENT" ]]; then
     echo $SSH_CLIENT | awk {'print $1 " "'};
   fi
 }
@@ -315,13 +317,42 @@ __prompt() {
   echo "»"
 }
 
+function preexec() {
+  timer=${timer:-$SECONDS}
+}
+
+function precmd() {
+  TIMER_PROMPT=''
+
+  # if environment var MIN_TIMER_DISPLAY is set use it otherwise use default of 30 seconds
+  # Dont show time command took unless greater than the minimum
+  if [[ "$MIN_TIMER_DISPLAY" == "" ]]; then
+    local MIN_TIMER=30
+  else
+    local MIN_TIMER=${MIN_TIMER_DISPLAY}
+  fi
+
+  if [ $timer ]; then
+    timer_show=$(($SECONDS - $timer))
+    if [ $timer_show -gt $MIN_TIMER ]; then
+      local T=$timer_show
+      local H=$(printf "%02d:" $((T/60/60%24)))
+      local M=$(printf "%02d:" $((T/60%60)))
+      local S=$(printf "%02d" $((T%60)))
+      if [[ "$H" == "00:" ]]; then H=''; fi
+      TIMER_PROMPT=" ${H}${M}${S} "
+    fi
+    unset timer
+  fi
+}
+
 fluent_git0(){
   setopt promptsubst
 
   RPROMPT=''
   PROMPT='
-%(?.${green_on_white}.${white_on_red}$(echo $?)${red_on_white})${black_on_white} %m ${white_on_darkblue} $B%n$b ${darkblue_on_blue}${white_on_blue}`_git_info`${darkblue_on_gray}${white_on_gray} %3~ ${reset}${gray}${reset}
-${cyan}$(__ssh_client)${yellow}$(__prompt)${reset} '
+%(?.${white_on_green}${TIMER_PROMPT}${green_on_white}.${white_on_red}$(echo $?) |${TIMER_PROMPT}${red_on_white})${black_on_white} %m ${white_on_darkblue} $B%n$b ${darkblue_on_blue}${white_on_blue}`_git_info`${darkblue_on_gray}${white_on_gray} %3~ ${reset}${gray}${reset}$prompt_newline
+${cyan}$(__ssh_client)${reset}${yellow}$(__prompt)${reset} '
 }
 
 fluent_git_prompts(){
