@@ -1,22 +1,22 @@
 # foreground
-local blue="$FG[020]"
-local darkblue="$FG[019]"
-local white="$fg[white]"
-local black="$fg[black]"
-local green="$fg[green]"
-local red="$fg[red]"
-local gray="$FG[245]"
-local cyan="$fg[cyan]"
-local yellow="$fg[yellow]"
+local blue="%{$FG[020]%}"
+local darkblue="%{$FG[019]%}"
+local white="%{$fg[white]%}"
+local black="%{$fg[black]%}"
+local green="%{$fg[green]%}"
+local red="%{$fg[red]%}"
+local gray="%{$FG[245]%}"
+local cyan="%{$fg[cyan]%}"
+local yellow="%{$fg[yellow]%}"
 
 #background
-local background_darkblue="$BG[019]"
-local background_blue="$BG[020]"
-local background_white="$bg[white]"
-local background_red="$bg[red]"
-local background_yellow="$bg[yellow]"
-local background_gray="$BG[245]"
-local background_green="$bg[green]"
+local background_darkblue="%{$BG[019]%}"
+local background_blue="%{$BG[020]%}"
+local background_white="%{$bg[white]%}"
+local background_red="%{$bg[red]%}"
+local background_yellow="%{$bg[yellow]%}"
+local background_gray="%{$BG[245]%}"
+local background_green="%{$bg[green]%}"
 local reset=%{$reset_color%}
 
 local white_on_blue="${white}${background_blue}"
@@ -130,17 +130,9 @@ function build_git_prompt {
 
 }
 
-function_exists() {
-    declare -f -F $1 > /dev/null
-    return $?
-}
-
-function eval_prompt_callback_if_present {
-        function_exists git_prompt_callback && echo "$(git_prompt_callback)"
-}
-
   : ${git_has_untracked_files_symbol:='[untracked] '}
   : ${git_has_renamed_files_symbol:='[renamed] '}
+
   : ${git_has_adds_symbol:='[added] '}
   : ${git_has_deletions_symbol:='[deleted] '}
   : ${git_has_cached_deletions_symbol:='[staged deletions] '}
@@ -341,24 +333,25 @@ function precmd() {
       local S=$(printf "%02d" $((T%60)))
       if [[ "$H" == "00:" ]]; then H=''; fi
       TIMER_PROMPT=" ${H}${M}${S} "
+      ERROR_SEPARATOR="|"
     fi
     unset timer
   fi
 }
 
-fluent_git0(){
+fluent_git(){
   setopt promptsubst
 
   RPROMPT=''
   PROMPT='
-%(?.${white_on_green}${TIMER_PROMPT}${green_on_white}.${white_on_red}$(echo $?) |${TIMER_PROMPT}${red_on_white})${black_on_white} %m ${white_on_darkblue} $B%n$b ${darkblue_on_blue}${white_on_blue}`_git_info`${darkblue_on_gray}${white_on_gray} %3~ ${reset}${gray}${reset}$prompt_newline
+%(?.${white_on_green}${TIMER_PROMPT}${green_on_white}.${white_on_red} $(echo $?) ${ERROR_SEPARATOR}${TIMER_PROMPT}${red_on_white})${black_on_white} %m ${white_on_darkblue} $B%n$b ${darkblue_on_blue}${white_on_blue}`_git_info`${darkblue_on_gray}${white_on_gray} %3~ ${reset}${gray}${reset}
 ${cyan}$(__ssh_client)${reset}${yellow}$(__prompt)${reset} '
 }
 
-fluent_git_prompts(){
-  fluent_git0
+fluent_git_prompt(){
+  fluent_git
 }
 
 _colorize()
 autoload -U add-zsh-hook
-fluent_git_prompts
+fluent_git_prompt
