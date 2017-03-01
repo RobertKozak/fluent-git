@@ -315,6 +315,7 @@ function preexec() {
 
 function precmd() {
   TIMER_PROMPT=''
+  ERROR_SEPARATOR=''
 
   # if environment var MIN_TIMER_DISPLAY is set use it otherwise use default of 30 seconds
   # Dont show time command took unless greater than the minimum
@@ -333,7 +334,9 @@ function precmd() {
       local S=$(printf "%02d" $((T%60)))
       if [[ "$H" == "00:" ]]; then H=''; fi
       TIMER_PROMPT=" ${H}${M}${S} "
-      ERROR_SEPARATOR="|"
+      if [ "$TIMER_PROMPT" != "  " ]; then
+        ERROR_SEPARATOR="|"
+      fi
     fi
     unset timer
   fi
