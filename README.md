@@ -2,10 +2,10 @@
 
 This is a custom prompt for zsh and bash
 
-This prompt can displays, on a line, one or more of the following:
+This prompt can display, on a line, one or more of the following:
 
-* Time taken to execute command if takes longer than 30 secs
-* Error code
+* Time taken to execute command (if takes longer than 30 secs)
+* error code
 * hostname
 * username
 * local git status
@@ -23,7 +23,11 @@ add to the end of .bashrc
 ## ZSH
 add fluent-git.theme to $ZSH/themes
 
-#### Example of the new prompt diaplaying execution time for last command
+### Example Screenshots
+
+
+
+#### Example of the new prompt displaying execution time for last command
 
 ![Prompt with timer](full.png?raw=true)
 
@@ -32,7 +36,10 @@ add fluent-git.theme to $ZSH/themes
 ![Example with error](error.png?raw=true)
 
 
-if you want this prompt to be available on mahines you ssh into you will need to copy the prompt.sh and .bashrc-ssh file to the server.
+
+#### Adding fluent-git prompt to remote machines
+
+if you want this prompt to be available on machines you ssh into you will need to copy the prompt.sh and .bashrc-ssh file to the server.
 
 1. add the following to your local .bash_alias
     
