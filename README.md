@@ -22,7 +22,7 @@ add to the end of .bashrc
 ## ZSH
 add fluent-git.theme to $ZSH/themes
 
-### Example of the new prompt diaplaying execution time for last command
+#### Example of the new prompt diaplaying execution time for last command
 
 ![Prompt with timer](full.png?raw=true)
 
