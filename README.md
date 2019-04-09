@@ -18,13 +18,16 @@ This prompt can display, on a line, one or more of the following:
 ## BASH
 add to the end of .bashrc
 
+    cp ./prompt.sh $HOME
     source $HOME/propmt.sh
 
 ## ZSH
 add fluent-git.theme to $ZSH/themes
+    
+    cp fluent-git.theme $ZSH/themes
 
-### Example Screenshots
 
+## Example Screenshots
 
 
 #### Example of the new prompt displaying execution time for last command
@@ -37,7 +40,7 @@ add fluent-git.theme to $ZSH/themes
 
 
 
-#### Adding fluent-git prompt to remote machines
+## Adding fluent-git prompt to remote machines
 
 if you want this prompt to be available on machines you ssh into you will need to copy the prompt.sh and .bashrc-ssh file to the server.
 
