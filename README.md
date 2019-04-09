@@ -53,7 +53,7 @@ once those steps are done next time you ssh it will copy over the .bashrc-ssh fi
 
 
     _ssh(){
-       scp -q -o LogLevel=QUIET $HOME/.bashrc-ssh $1:/home/robert.kozak/.bashrc
+       scp -q -o LogLevel=QUIET $HOME/.bashrc-ssh $1:/home/$USER/.bashrc
        /usr/bin/ssh $@
     }
     alias ssh="_ssh"
