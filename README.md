@@ -45,9 +45,10 @@ add fluent-git.theme to $ZSH/themes
 if you want this prompt to be available on machines you ssh into you will need to copy the prompt.sh and .bashrc-ssh file to the server.
 
 1. create alias
-2. copy filer to $HOME
+2. copy files to $HOME
 3. Restart shell or source .bash_aliases
     
+
     _ssh(){
        scp -q -o LogLevel=QUIET $HOME/.bashrc-ssh $1:/home/robert.kozak/.bashrc
        /usr/bin/ssh $@
