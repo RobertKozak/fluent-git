@@ -44,8 +44,8 @@ add fluent-git.theme to $ZSH/themes
 
 if you want this prompt to be available on machines you ssh into you will need to copy the prompt.sh and .bashrc-ssh file to the server.
 
-1. create alias
-2. copy files to $HOME
+1. create alias in .bash_aliases
+2. copy .bashrc-ssh to $HOME
 3. Restart shell or source .bash_aliases
 
 once those steps are done next time you ssh it will copy over the .bashrc-ssh file to the remote server as your new .bashrc which contains the new prompt

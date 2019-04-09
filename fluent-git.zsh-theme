@@ -1,37 +1,37 @@
 # foreground
-local blue="%{$FG[020]%}"
-local darkblue="%{$FG[019]%}"
-local white="%{$fg[white]%}"
-local black="%{$fg[black]%}"
-local green="%{$fg[green]%}"
-local red="%{$fg[red]%}"
-local gray="%{$FG[245]%}"
-local cyan="%{$fg[cyan]%}"
-local yellow="%{$fg[yellow]%}"
+local foreground_blue="%{$FG[012]%}"
+local foreground_darkblue="%{$FG[004]%}"
+local foreground_white="%{$FG[015]%}"
+local foreground_black="%{$FG[000]%}"
+local foreground_green="%{$FG[002]%}"
+local foreground_red="%{$FG[001]%}"
+local foreground_gray="%{$FG[008]%}"
+local foreground_cyan="%{$FG[014]%}"
+local foreground_yellow="%{$FG[011]%}"
 
 #background
-local background_darkblue="%{$BG[019]%}"
-local background_blue="%{$BG[020]%}"
-local background_white="%{$bg[white]%}"
-local background_red="%{$bg[red]%}"
-local background_yellow="%{$bg[yellow]%}"
-local background_gray="%{$BG[245]%}"
-local background_green="%{$bg[green]%}"
-local reset=%{$reset_color%}
+local background_darkblue="%{$BG[004]%}"
+local background_blue="%{$BG[012]%}"
+local background_white="%{$BG[015]%}"
+local background_red="%{$BG[001]%}"
+local background_yellow="%{$BG[011]%}"
+local background_gray="%{$BG[008]%}"
+local background_green="%{$BG[002]%}"
+local reset="%{$reset_color%}"
 
-local white_on_blue="${white}${background_blue}"
-local white_on_darkblue="${white}${background_darkblue}"
-local white_on_red="${white}${background_red}"
-local white_on_green="${white}${background_green}"
-local white_on_gray="${white}${background_gray}"
-local blue_on_darkblue="${blue}${background_darkblue}"
-local darkblue_on_gray="${darkblue}${background_gray}"
-local darkblue_on_blue="${darkblue}${background_blue}"
-local darkblue_on_white="${darkblue}${background_white}"
-local red_on_white="${red}${background_white}"
-local green_on_white="${green}${background_white}"
-local green_on_gray="${green}{background_gray}"
-local black_on_white="${black}${background_white}"
+local white_on_blue="%{${foreground_white}${background_blue}%}"
+local white_on_darkblue="%{${foreground_white}${background_darkblue}%}"
+local white_on_red="%{${foreground_white}${background_red}%}"
+local white_on_green="%{${foreground_white}${background_green}%}"
+local white_on_gray="%{${foreground_white}${background_gray}%}"
+local blue_on_darkblue="%{${foreground_blue}${background_darkblue}%}"
+local darkblue_on_gray="%{${foreground_darkblue}${background_gray}%}"
+local darkblue_on_blue="%{${foreground_darkblue}${background_blue}%}"
+local darkblue_on_white="%{${foreground_darkblue}${background_white}%}"
+local red_on_white="%{${foreground_red}${background_white}%}"
+local green_on_white="%{${foreground_green}${background_white}%}"
+local green_on_gray="%{${foreground_green}{background_gray}%}"
+local black_on_white="%{${foreground_black}${background_white}%}"
 
 function get_current_action () {
     local info="$(git rev-parse --git-dir 2>/dev/null)"
@@ -306,9 +306,11 @@ __ssh_client(){
 }
 
 __kubernetes_env(){
-  if [[ `which kubectl` ]]; then
+  if [[ `command -v kubectl` ]]; then
+    namespace=$(kubectl config get-contexts | grep $(kubectl config current-context) | awk {'print $5'})
+    [[ -n $namespace ]] && namespace="| $namespace"
     echo -n "${darkblue_on_white}"
-    echo -n -e "${black_on_white}$B" `kubectl config current-context | xargs`" $b"
+    echo -n -e "%{${black_on_white}$B" `kubectl config current-context | xargs`" $namespace $b%}"
     echo -n "${white_on_gray}"
   else
     echo -n "${darkblue_on_gray}"
@@ -359,8 +361,8 @@ fluent_git(){
 
   RPROMPT=''
   PROMPT='
-%(?.${white_on_green}${TIMER_PROMPT}${green_on_white}.${white_on_red} $(echo $?) ${ERROR_SEPARATOR}${TIMER_PROMPT}${red_on_white})${black_on_white} %m ${white_on_darkblue} $B%n$b ${darkblue_on_blue}${white_on_blue}`_git_info`$(__kubernetes_env) %3~ ${reset}${gray}${reset}
-${cyan}$(__ssh_client)${reset}${yellow}$(__prompt)${reset} '
+%(?.${white_on_green}${TIMER_PROMPT}${green_on_white}.${white_on_red} $(echo $?) ${ERROR_SEPARATOR}${TIMER_PROMPT}${red_on_white})${black_on_white} %m ${white_on_darkblue} $B%n$b ${darkblue_on_blue}${white_on_blue}`_git_info`$(__kubernetes_env) %3~ ${reset}${foreground_gray}${reset}
+${foreground_cyan}$(__ssh_client)${reset}${foreground_yellow}$(__prompt)${reset} '
 }
 
 fluent_git_prompt(){
