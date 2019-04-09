@@ -46,13 +46,15 @@ if you want this prompt to be available on machines you ssh into you will need t
 
 1. add the following to your local .bash_alias
     
-    _ssh(){
-      scp -q -o LogLevel=QUIET $HOME/.bashrc-ssh $1:/home/robert.kozak/.bashrc
-      /usr/bin/ssh $@
-    }
-    alias ssh="_ssh"
+     _ssh(){
+        scp -q -o LogLevel=QUIET $HOME/.bashrc-ssh $1:/home/robert.kozak/.bashrc
+        /usr/bin/ssh $@
+     }
+     alias ssh="_ssh"
 
 2. copy .bashrc-ssh to your local $HOME
+
+     cp .bashrc-ssh $HOME
 
 3. restart your shell or source $HOME/.bash_aliases
 
