@@ -2,16 +2,16 @@
 
 Custom prompt for zsh and bash
 
-# Prompt that displays one or more of the following:
-# Time taken to execute command - after 30 secs
-# Error code
-# hostname
-# username
-# local git status
-# remote git status
-# kubernetes cluster and namespace
-# path
-# ssh client connection
+* Prompt that displays one or more of the following:
+* Time taken to execute command - after 30 secs
+* Error code
+* hostname
+* username
+* local git status
+* remote git status
+* kubernetes cluster and namespace
+* path
+* ssh client connection
 
 
 ## BASH
