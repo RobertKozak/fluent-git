@@ -47,7 +47,10 @@ if you want this prompt to be available on machines you ssh into you will need t
 1. create alias
 2. copy files to $HOME
 3. Restart shell or source .bash_aliases
-    
+
+once those steps are done next time you ssh it will copy over the .bashrc-ssh file to the remote server as your new .bashrc which contains the new prompt
+
+
 
     _ssh(){
        scp -q -o LogLevel=QUIET $HOME/.bashrc-ssh $1:/home/robert.kozak/.bashrc
@@ -56,8 +59,5 @@ if you want this prompt to be available on machines you ssh into you will need t
     alias ssh="_ssh"
 
     cp .bashrc-ssh $HOME
-    
+
     source $HOME./bash_aliases
-
-once those steps are done next time you ssh it will copy over the .bashrc-ssh file to the remote server as your new .bashrc which contains the new prompt
-
