@@ -50,18 +50,14 @@ if you want this prompt to be available on machines you ssh into you will need t
 1. create alias in .bash_aliases
 
 ```bash
-# copy .bashrc-ssh file and do regular ssh
-_ssh(){
-   scp -q -o LogLevel=QUIET $HOME/.bashrc-ssh $1:/home/$USER/.bashrc
+# when using -P arg: copy .bashrc-ssh file and do ssh else just do ssh
+__ssh(){
+   [[ $@ == *'-P'* ]] && echo "Copying bash profile for Fluent-git Prompt" && scp -q -o LogLevel=QUIET $HOME/.bashrc-ssh $1:/home/$USER/.bashrc
+  
    /usr/bin/ssh $@
 }
 
-# use for root ssh
-_rssh(){
-   /usr/bin/ssh root@$@
-}
-alias ssh="_ssh"
-alias rssh="_rssh
+alias ssh="__ssh"
 ```
 
 2. copy .bashrc-ssh to $HOME
