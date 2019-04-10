@@ -18,14 +18,17 @@ This prompt can display, on a line, one or more of the following:
 ## BASH
 add to the end of .bashrc
 
-    cp ./prompt.sh $HOME
-    source $HOME/propmt.sh
+```bash
+cp ./prompt.sh $HOME
+source $HOME/propmt.sh
+```
 
 ## ZSH
 add fluent-git.theme to $ZSH/themes
-    
-    cp fluent-git.theme $ZSH/themes
 
+```bash    
+cp fluent-git.theme $ZSH/themes
+```
 
 ## Example Screenshots
 
@@ -45,19 +48,33 @@ add fluent-git.theme to $ZSH/themes
 if you want this prompt to be available on machines you ssh into you will need to copy the prompt.sh and .bashrc-ssh file to the server.
 
 1. create alias in .bash_aliases
+
+```bash
+# copy .bashrc-ssh file and do regular ssh
+_ssh(){
+   scp -q -o LogLevel=QUIET $HOME/.bashrc-ssh $1:/home/$USER/.bashrc
+   /usr/bin/ssh $@
+}
+
+# use for root ssh
+_rssh(){
+   /usr/bin/ssh root@$@
+}
+alias ssh="_ssh"
+alias rssh="_rssh
+```
+
 2. copy .bashrc-ssh to $HOME
+
+```bash
+cp .bashrc-ssh $HOME
+```
+
 3. Restart shell or source .bash_aliases
+
+```bash
+source $HOME./bash_aliases
+```
 
 once those steps are done next time you ssh it will copy over the .bashrc-ssh file to the remote server as your new .bashrc which contains the new prompt
 
-
-
-    _ssh(){
-       scp -q -o LogLevel=QUIET $HOME/.bashrc-ssh $1:/home/$USER/.bashrc
-       /usr/bin/ssh $@
-    }
-    alias ssh="_ssh"
-
-    cp .bashrc-ssh $HOME
-
-    source $HOME./bash_aliases
