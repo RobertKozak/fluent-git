@@ -72,5 +72,10 @@ cp .bashrc-ssh $HOME
 source $HOME./bash_aliases
 ```
 
-once those steps are done next time you ssh it will copy over the .bashrc-ssh file to the remote server as your new .bashrc which contains the new prompt
+once those steps are done next time you ssh with -P arg it will copy over the .bashrc-ssh file to the remote server as your new .bashrc which contains the new prompt
 
+example:
+
+```bash
+ssh bastion -P
+```
