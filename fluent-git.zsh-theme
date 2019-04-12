@@ -238,7 +238,9 @@ function build_git_prompt {
               fi
           fi
           prompt+=$(prompt_append ${is_on_a_tag} "${git_is_on_a_tag_symbol}${tag_at_current_commit}")
-          prompt+="${reset}"
+          # add extra space if not just a reset code
+          [[ -n "$prompt" ]] && prompt+=$(prompt_append true " ${reset}")
+          [[ -z "$prompt" ]] && prompt+="${reset}"
       fi
 
       echo "${firstprompt}${blue_on_darkblue}${white_on_darkblue}${prompt}"
