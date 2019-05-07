@@ -43,7 +43,7 @@ cp fluent-git.theme $ZSH/themes
 
 
 
-## Adding fluent-git prompt to remote machines
+## Adding fluent-git prompt to remote machines (bash)
 
 if you want this prompt to be available on machines you ssh into you will need to copy the prompt.sh and .bashrc-ssh file to the server.
 
