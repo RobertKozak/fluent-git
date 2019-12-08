@@ -16,11 +16,10 @@ This prompt can display, on a line, one or more of the following:
 
 
 ## BASH
-add to the end of .bashrc
+copy prompt.sh to $HOMRE and add to the end of .bashrc
 
 ```bash
-cp ./prompt.sh $HOME
-source $HOME/propmt.sh
+source $HOME/prompt.sh
 ```
 
 ## ZSH
