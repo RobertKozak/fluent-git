@@ -16,7 +16,7 @@ This prompt can display, on a line, one or more of the following:
 
 
 ## BASH
-copy prompt.sh to $HOMRE and add to the end of .bashrc
+copy prompt.sh to $HOME and add to the end of .bashrc
 
 ```bash
 source $HOME/prompt.sh
