@@ -347,6 +347,8 @@ _get_error_code() {
 }
 
 segment1() {
+  FG_COLOR=white
+  BG_COLOR=red
   segment " \$(_get_error_code) "
 }
 
