@@ -1,24 +1,28 @@
 #!/bin/bash
 
-# Prompt that displays one or more of the following:
-# Time taken to execute command - after 30 secs
-# Error code
-# hostname
-# username
-# local git status
-# remote git status
-# kubernetes cluster and namespace
-# path
-# ssh client connection
-
-# $1 text
-# $FG = foreground color
-# $BG = background color
-segment () {
-  eval fg="$FG\$$FG_COLOR"
-  eval bg="$BG\$$BG_COLOR"
-  printf "\e[%s;%s;%sm%s" $bold $fg $bg "$1"
-}
+##########################################################################################
+#
+# Fluent-git prompt
+#
+# This is a custom prompt for zsh and bash
+#
+# This prompt can display, on a line, one or more of the following:
+#
+#     Time taken to execute command (if takes longer than 30 secs)
+#     error code
+#     hostname
+#     username
+#     local git status
+#     remote git status
+#     kubernetes cluster and namespace
+#     path
+#     ssh client connection
+#
+# Author : Robert Kozak <rkozak@gmail.com>
+# Date   : May 31, 2019
+# License: MIT
+#
+##########################################################################################
 
 # Colors
 black=0
@@ -37,7 +41,6 @@ standard_fg=3
 gray_fg=9
 none_fg=9
 
-# background colors
 standard_bg=4
 gray_bg=10
 none_bg=10
@@ -47,7 +50,11 @@ BG=$standard_bg
 
 bold=0
 new_prompt="» "
-reset="\[\033[00m\]"
+[[ "$SHELL" == *"zsh"* ]] && reset="%{%f%}" || reset="\033[0m"
+[[ "$SHELL" == *"zsh"* ]] && prefix="%{" || prefix=""
+[[ "$SHELL" == *"zsh"* ]] && suffix="%}" || suffix=""
+
+timer="UNSET"
 
 get_current_action() {
     info="$(git rev-parse --git-dir 2>/dev/null)"
@@ -88,9 +95,7 @@ get_current_action() {
 }
 
 build_git_prompt() {
-    precmd
     prompt=""
-
     # Git info
     current_commit_hash=$(git rev-parse HEAD 2> /dev/null)
     is_a_git_repo=false
@@ -98,7 +103,6 @@ build_git_prompt() {
     if [[ $is_a_git_repo ]]; then
         current_branch=$(git rev-parse --abbrev-ref HEAD 2> /dev/null)
         if [[ $current_branch == 'HEAD' ]]; then detached=true; fi
-
         number_of_logs="$(git log --pretty=oneline -n1 2> /dev/null | wc -l)"
         if [[ $number_of_logs -eq 0 ]]; then
             just_init=true
@@ -115,22 +119,17 @@ build_git_prompt() {
             if [[ $git_status =~ ($'\n'|^)D ]]; then has_deletions_cached=true; fi
             if [[ $git_status =~ ($'\n'|^)[MAD] && ! $git_status =~ ($'\n'|^).[MAD\?] ]]; then ready_to_commit=true; fi
             if [[ $git_status =~ ($'\n'|^)R ]]; then has_renamed_files=true; fi
-
             number_of_untracked_files=$(\grep -c "^??" <<< "${git_status}")
             if [[ $number_of_untracked_files -gt 0 ]]; then has_untracked_files=true; fi
-
             tag_at_current_commit=$(git describe --exact-match --tags $current_commit_hash 2> /dev/null)
             if [[ -n $tag_at_current_commit ]]; then is_on_a_tag=true; fi
-
             if [[ $has_upstream == true ]]; then
                 commits_diff="$(git log --pretty=oneline --topo-order --left-right ${current_commit_hash}...${upstream} 2> /dev/null)"
                 commits_ahead=$(\grep -c "^<" <<< "$commits_diff")
                 commits_behind=$(\grep -c "^>" <<< "$commits_diff")
             fi
-
             if [[ $commits_ahead -gt 0 && $commits_behind -gt 0 ]]; then has_diverged=true; fi
             if [[ $has_diverged == false && $commits_ahead -gt 0 ]]; then should_push=true; fi
-
             will_rebase=$(git config --get branch.${current_branch}.rebase 2> /dev/null)
 
             number_of_stashes="$(git stash list -n1 2> /dev/null | wc -l)"
@@ -140,30 +139,27 @@ build_git_prompt() {
      firstprompt=""
      prompt=""
    fi
-
-    printf -v git_prompt "%s" "$(custom_build_prompt ${enabled:-true} ${current_commit_hash:-""} ${is_a_git_repo:-false} ${current_branch:-""} ${detached:-false} ${just_init:-false} ${has_upstream:-false} ${has_modifications:-false} ${has_modifications_cached:-false} ${has_adds:-false} ${has_deletions:-false} ${has_deletions_cached:-false} ${has_untracked_files:-false} ${has_renamed_files:-false} ${ready_to_commit:-false} ${tag_at_current_commit:-""} ${is_on_a_tag:-false} ${commits_ahead:-false} ${commits_behind:-false} ${has_diverged:-false} ${should_push:-false} ${will_rebase:-false} ${has_stashes:-false} ${action})"
-
+   printf "%s" "$(custom_build_prompt ${enabled:-true} ${current_commit_hash:-""} ${is_a_git_repo:-false} ${current_branch:-""} ${detached:-false} ${just_init:-false} ${has_upstream:-false} ${has_modifications:-false} ${has_modifications_cached:-false} ${has_adds:-false} ${has_deletions:-false} ${has_deletions_cached:-false} ${has_untracked_files:-false} ${has_renamed_files:-false} ${ready_to_commit:-false} ${tag_at_current_commit:-""} ${is_on_a_tag:-false} ${commits_ahead:-false} ${commits_behind:-false} ${has_diverged:-false} ${should_push:-false} ${will_rebase:-false} ${has_stashes:-false} ${action})"
   }
 
-  : ${git_has_untracked_files_symbol:='[untracked] '}
-  : ${git_has_renamed_files_symbol:='[renamed] '}
-
-  : ${git_has_adds_symbol:='[added] '}
-  : ${git_has_deletions_symbol:='[deleted] '}
-  : ${git_has_cached_deletions_symbol:='[staged deletions] '}
-  : ${git_has_modifications_symbol:='[modified] '}
-  : ${git_has_cached_modifications_symbol:='[staged modifications] '}
-  : ${git_ready_to_commit_symbol:='[ready to commit] '}
-  : ${git_is_on_a_tag_symbol:='[tag] '}
-  : ${git_needs_to_merge_symbol:='[needs merge] '}
-  : ${git_detached_symbol:='[detatched] '}
-  : ${git_can_fast_forward_symbol:='[can FF »] '}
-  : ${git_has_diverged_symbol:='[diverged] '}
-  : ${git_not_tracked_branch_symbol:='[not tracked] '}
-  : ${git_rebase_tracking_branch_symbol:='[rebase] '}
-  : ${git_merge_tracking_branch_symbol:='[merge] '}
-  : ${git_should_push_symbol:='[should push] '}
-  : ${git_has_stashes_symbol:='[has stashes] '}
+  : ${git_has_untracked_files:='[untracked]'}
+  : ${git_has_renamed_files:='[renamed]'}
+  : ${git_has_adds:='[added]'}
+  : ${git_has_deletions:='[deleted]'}
+  : ${git_has_cached_deletions:='[staged deletions]'}
+  : ${git_has_modifications:='[modified]'}
+  : ${git_has_cached_modifications:='[staged modifications]'}
+  : ${git_ready_to_commit:='[ready to commit]'}
+  : ${git_is_on_a_tag:='[tag]'}
+  : ${git_needs_to_merge:='[needs merge]'}
+  : ${git_detached:='[detatched]'}
+  : ${git_can_fast_forward:='[can FF »]'}
+  : ${git_has_diverged:='[diverged]'}
+  : ${git_not_tracked_branch:='[not tracked]'}
+  : ${git_rebase_tracking_branch:='[rebase]'}
+  : ${git_merge_tracking_branch:='[merge]'}
+  : ${git_should_push:='[should push]'}
+  : ${git_has_stashes:='[has stashes]'}
 
   function prompt_append {
      flag=$1
@@ -198,59 +194,56 @@ build_git_prompt() {
       will_rebase=${22}
       has_stashes=${23}
 
-      prompt=""
-
       if [[ $is_a_git_repo == true ]]; then
           # on filesystem
-          prompt=" "
-          prompt+=$(prompt_append $has_stashes $git_has_stashes_symbol)
-          prompt+=$(prompt_append $has_renamed_files $git_has_renamed_files_symbol)
+          prompt+=$(prompt_append $has_stashes $git_has_stashes)
+          prompt+=$(prompt_append $has_renamed_files $git_has_renamed_files)
 
-          prompt+=$(prompt_append $has_untracked_files $git_has_untracked_files_symbol)
-          prompt+=$(prompt_append $has_modifications $git_has_modifications_symbol)
-          prompt+=$(prompt_append $has_deletions $git_has_deletions_symbol)
+          prompt+=$(prompt_append $has_untracked_files $git_has_untracked_files)
+          prompt+=$(prompt_append $has_modifications $git_has_modifications)
+          prompt+=$(prompt_append $has_deletions $git_has_deletions)
 
           # ready
-          prompt+=$(prompt_append $has_adds $git_has_adds_symbol)
-          prompt+=$(prompt_append $has_modifications_cached $git_has_cached_modifications_symbol)
-          prompt+=$(prompt_append $has_deletions_cached $git_has_cached_deletions_symbol)
+          prompt+=$(prompt_append $has_adds $git_has_adds)
+          prompt+=$(prompt_append $has_modifications_cached $git_has_cached_modifications)
+          prompt+=$(prompt_append $has_deletions_cached $git_has_cached_deletions)
 
           # next operation
-          prompt+=$(prompt_append $ready_to_commit $git_ready_to_commit_symbol)
+          prompt+=$(prompt_append $ready_to_commit $git_ready_to_commit)
 
           # where
-          firstprompt="${prompt} ${current_branch} "
-          prompt=' '
+          firstprompt=" ${prompt} ${current_branch} "
+          prompt=" "
 
           if [[ $detached == true ]]; then
-              prompt+=$(prompt_append $detached $git_detached_symbol)
-              prompt+=$(prompt_append $detached "(${current_commit_hash:0:7}) ")
+              prompt+=$(prompt_append $detached $git_detached)
+              prompt+=$(prompt_append $detached "(${current_commit_hash:0:7})")
           else
               if [[ $has_upstream == false ]]; then
-                  prompt+=$(prompt_append true "${git_not_tracked_branch_symbol} ")
+                  prompt+=$(prompt_append true "${git_not_tracked_branch}")
               else
                   if [[ $will_rebase == true ]]; then
-                      type_of_upstream=$git_rebase_tracking_branch_symbol
+                      type_of_upstream=$git_rebase_tracking_branch
                   elif [[ $has_untracked_files == true || $has_modifications == true || $has_deletions == true || $has_adds == true || $has_modifications_cached == true || $has_deletions_cached == true || $ready_to_commit == true ]] ; then
-                      type_of_upstream=$git_merge_tracking_branch_symbol
+                      type_of_upstream=$git_merge_tracking_branch
                   else
                       type_of_upstream=''
                   fi
 
                   if [[ $has_diverged == true ]]; then
-                      prompt+=$(prompt_append true "[-${commits_behind} behind] ${git_has_diverged_symbol} [+${commits_ahead} ahead] ")
+                      prompt+=$(prompt_append true "[-${commits_behind} behind] ${git_has_diverged} [+${commits_ahead} ahead]")
                   else
                       if [[ $commits_behind -gt 0 ]]; then
-                          prompt+=$(prompt_append true "[-${commits_behind} behind] ${git_can_fast_forward_symbol} ")
+                          prompt+=$(prompt_append true "[-${commits_behind} behind] ${git_can_fast_forward}")
                       fi
                       if [[ $commits_ahead -gt 0 ]]; then
-                          prompt+=$(prompt_append true "${git_should_push_symbol}[+${commits_ahead} ahead] ")
+                          prompt+=$(prompt_append true "${git_should_push}[+${commits_ahead} ahead]")
                       fi
                   fi
-                  prompt+=$(prompt_append true "${type_of_upstream}${upstream//\/$current_branch/} ")
+                  prompt+=$(prompt_append true "${type_of_upstream} ${upstream//\/$current_branch/} ")
               fi
           fi
-          prompt+=$(prompt_append ${is_on_a_tag} "${git_is_on_a_tag_symbol}${tag_at_current_commit}")
+          prompt+=$(prompt_append ${is_on_a_tag} "${git_is_on_a_tag}${tag_at_current_commit}")
       fi
 
       BG=$gray_bg
@@ -282,48 +275,20 @@ _ssh_client(){
 }
 
 _kubernetes_env(){
-  if [[ `command -v kubectl` ]]; then
-    namespace=$(kubectl config get-contexts | grep $(kubectl config current-context) | awk {'print $5'})
-    [[ -n $namespace ]] && namespace="| $namespace "
-    echo -n " "`kubectl config current-context | xargs`" "$namespace
+  if [[ `which kubectl` && ! -z $KUBECONFIG ]]; then
+    CURRENT_CONTEXT=$(kubectl config current-context 2> /dev/null)
+    [[ ! -z $CURRENT_CONTEXT ]] && namespace=$(kubectl config get-contexts | grep $(kubectl config current-context) | awk {'print $5'})
+    [[ -n $namespace ]] && namespace=" | $namespace"
+    echo -n " `kubectl config current-context | xargs`$namespace "
   else
     echo -n ""
-  fi
-}
-
-function preexec() {
-  timer=${timer:-$SECONDS}
-}
-
-function precmd() {
-  TIMER_PROMPT=''
-  ERROR_SEPARATOR=''
-
-  # if environment var MIN_TIMER_DISPLAY is set use it otherwise use default of 30 seconds
-  # Dont show time command took unless greater than the minimum
-  if [[ "$MIN_TIMER_DISPLAY" == "" ]]; then
-    MIN_TIMER=30
-  else
-    MIN_TIMER=${MIN_TIMER_DISPLAY}
-  fi
-
-  if [ $timer ]; then
-    timer_show=$(($SECONDS - $timer))
-    if [ $timer_show -gt $MIN_TIMER ]; then
-      T=$timer_show
-      H=$(printf "%02d:" $((T/60/60%24)))
-      M=$(printf "%02d:" $((T/60%60)))
-      S=$(printf "%02d" $((T%60)))
-      if [[ "$H" == "00:" ]]; then H=''; fi
-      TIMER_PROMPT=" ${H}${M}${S} "
-    fi
-    unset timer
   fi
 }
 
 _get_error_code() {
   error_code=$?
   error_segment=""
+  timer_segment=""
   ERROR_SEPARATOR=""
 
   FG_COLOR=white
@@ -334,11 +299,11 @@ _get_error_code() {
       ERROR_SEPARATOR="|"
     fi
     BG_COLOR=red
+  else
     error_code=0
   fi
 
   timer_segment=${TIMER_PROMPT}
-
   segment "$error_segment${ERROR_SEPARATOR}$timer_segment"
 
   FG_COLOR=$BG_COLOR
@@ -346,17 +311,32 @@ _get_error_code() {
   segment ""
 }
 
-segment1() {
+# $1 text
+# $FG = foreground color
+# $BG = background color
+segment () {
+  eval fg="$FG\$$FG_COLOR"
+  eval bg="$BG\$$BG_COLOR"
+
+  echo -en "${prefix}\e[${bold};${fg};${bg}m${suffix}"
+  echo -en "$1${reset}"
+}
+
+segment_error () {
   FG_COLOR=white
   BG_COLOR=red
-  segment " \$(_get_error_code) "
+
+  segment '$(_get_error_code)'
 }
 
 segment_hostname () {
   FG_COLOR=black
   BG_COLOR=white
 
-  segment ' $HOSTNAME '
+  [[ "$SHELL" == *"zsh"* ]] && HOST_NAME="$(HOSTNAME)" || HOST_NAME="$HOSTNAME"
+  HOST_NAME=$(echo $HOST_NAME | cut -d'.' -f1)
+  segment " $HOST_NAME "
+
   FG_COLOR=white
   BG_COLOR=blue
   segment ""
@@ -373,7 +353,12 @@ segment_username () {
 }
 
 segment_git () {
-  echo -n -e `build_git_prompt`
+  FG_COLOR=white
+  BG_COLOR=blue
+  BG=$gray_bg
+  FG_COLOR=blue
+
+  segment '$(build_git_prompt)'
 }
 
 segment_kubernetes_info () {
@@ -392,14 +377,11 @@ segment_path () {
   BG_COLOR=gray
   FG=$none_fg
   BG=$none_bg
-  segment ' \w '
+  [[ "$SHELL" == *"zsh"* ]] && segment ' %~ ' || segment ' \w '
   FG_COLOR=gray
   BG_COLOR=none
   segment ""
   FG_COLOR=black
-
-  echo -e -n ${reset}
-  echo -e "\[\e[0K\]"
 }
 
 segment_sshclient () {
@@ -407,7 +389,6 @@ segment_sshclient () {
   BG=$none_bg
   BG_COLOR=none
   segment '$(_ssh_client)'
-  echo -e -n ${reset}
 }
 
 segment_prompt () {
@@ -415,18 +396,400 @@ segment_prompt () {
   BG_COLOR=none
   BG=$none_bg
   FG=$none_fg
-  segment '$new_prompt '
+  segment '$new_prompt'
 }
 
-preexec_invoke_exec () {
-    [ -n "$COMP_LINE" ] && return  # do nothing if completing
-    [ "$BASH_COMMAND" = "$PROMPT_COMMAND" ] && return # don't cause a preexec for $PROMPT_COMMAND
-    local this_command=`HISTTIMEFORMAT= history 1 | sed -e "s/^[ ]*[0-9]*[ ]*//"`;
-    preexec "$this_command"
+_prompt=$(echo -en $(segment_error)$(segment_hostname)$(segment_username)$(segment_git)$(segment_kubernetes_info)$(segment_path)"\n"$(segment_sshclient)$(segment_prompt))
+
+[[ "$SHELL" == *"zsh"* ]] && PROMPT=$_prompt || PS1=$_prompt
+
+function preexec() {
+  if [[ "${timer}" == "UNSET" ]]; then
+    timer=$SECONDS
+  else
+    timer=${timer:-$SECONDS}
+  fi
 }
-trap 'preexec_invoke_exec' DEBUG
 
-PROMPT_COMMAND=`a=`build_git_prompt``
-_prompt=$(echo -n $(segment1) && echo -n $(segment_hostname) && echo -n $(segment_username) && echo -n "\$git_prompt" && echo -n $(segment_kubernetes_info) && echo $(segment_path) && echo -n $(segment_sshclient) && echo -n $(segment_prompt) && echo ${reset})
+function precmd() {
+  # if environment var MIN_TIMER_DISPLAY is set use it otherwise use default of 30 seconds
+  # Dont show time command took unless greater than the minimum
+  if [[ -z $MIN_TIMER_DISPLAY ]]; then
+    MIN_TIMER=30
+  else
+    MIN_TIMER=${MIN_TIMER_DISPLAY}
+  fi
 
-PS1=$_prompt
+  if [[ "${timer}" == "UNSET" ]]; then
+     timer_show=""
+     TIMER_PROMPT=""
+  else
+    timer_show=$(($SECONDS - $timer))
+    if [ $timer_show -gt $MIN_TIMER ]; then
+      T=$timer_show
+      H=$(printf "%02d:" $((T/60/60%24)))
+      M=$(printf "%02d:" $((T/60%60)))
+      S=$(printf "%02d" $((T%60)))
+      if [[ "$H" == "00:" ]]; then H=''; fi
+      TIMER_PROMPT=" ${H}${M}${S} "
+    fi
+  fi
+  timer="UNSET"
+}
+
+#####################################################################################################################
+#
+# bash-preexec.sh -- Bash support for ZSH-like 'preexec' and 'precmd' functions.
+# https://github.com/rcaloras/bash-preexec
+#
+#
+# 'preexec' functions are executed before each interactive command is
+# executed, with the interactive command as its argument. The 'precmd'
+# function is executed before each prompt is displayed.
+#
+# Author: Ryan Caloras (ryan@bashhub.com)
+# Forked from Original Author: Glyph Lefkowitz
+#
+# V0.5.0
+#
+
+# General Usage:
+#
+#  1. Source this file at the end of your bash profile so as not to interfere
+#     with anything else that's using PROMPT_COMMAND.
+#
+#  2. Add any precmd or preexec functions by appending them to their arrays:
+#       e.g.
+#       precmd_functions+=(my_precmd_function)
+#       precmd_functions+=(some_other_precmd_function)
+#
+#       preexec_functions+=(my_preexec_function)
+#
+#  3. Consider changing anything using the DEBUG trap or PROMPT_COMMAND
+#     to use preexec and precmd instead. Preexisting usages will be
+#     preserved, but doing so manually may be less surprising.
+#
+#  Note: This module requires two Bash features which you must not otherwise be
+#  using: the "DEBUG" trap, and the "PROMPT_COMMAND" variable. If you override
+#  either of these after bash-preexec has been installed it will most likely break.
+
+# Make sure this is bash that's running and return otherwise.
+# Use POSIX syntax for this line:
+if [ -z "${BASH_VERSION-}" ]; then
+    return 0;
+fi
+
+# Avoid duplicate inclusion
+if [[ -n "${bash_preexec_imported:-}" ]]; then
+    return 0
+fi
+bash_preexec_imported="defined"
+
+# WARNING: This variable is no longer used and should not be relied upon.
+# Use ${bash_preexec_imported} instead.
+__bp_imported="${bash_preexec_imported}"
+
+# Should be available to each precmd and preexec
+# functions, should they want it. $? and $_ are available as $? and $_, but
+# $PIPESTATUS is available only in a copy, $BP_PIPESTATUS.
+# TODO: Figure out how to restore PIPESTATUS before each precmd or preexec
+# function.
+__bp_last_ret_value="$?"
+BP_PIPESTATUS=("${PIPESTATUS[@]}")
+__bp_last_argument_prev_command="$_"
+
+__bp_inside_precmd=0
+__bp_inside_preexec=0
+
+# Initial PROMPT_COMMAND string that is removed from PROMPT_COMMAND post __bp_install
+__bp_install_string=$'__bp_trap_string="$(trap -p DEBUG)"\ntrap - DEBUG\n__bp_install'
+
+# Fails if any of the given variables are readonly
+# Reference https://stackoverflow.com/a/4441178
+__bp_require_not_readonly() {
+  local var
+  for var; do
+    if ! ( unset "$var" 2> /dev/null ); then
+      echo "bash-preexec requires write access to ${var}" >&2
+      return 1
+    fi
+  done
+}
+
+# Remove ignorespace and or replace ignoreboth from HISTCONTROL
+# so we can accurately invoke preexec with a command from our
+# history even if it starts with a space.
+__bp_adjust_histcontrol() {
+    local histcontrol
+    histcontrol="${HISTCONTROL:-}"
+    histcontrol="${histcontrol//ignorespace}"
+    # Replace ignoreboth with ignoredups
+    if [[ "$histcontrol" == *"ignoreboth"* ]]; then
+        histcontrol="ignoredups:${histcontrol//ignoreboth}"
+    fi;
+    export HISTCONTROL="$histcontrol"
+}
+
+# This variable describes whether we are currently in "interactive mode";
+# i.e. whether this shell has just executed a prompt and is waiting for user
+# input.  It documents whether the current command invoked by the trace hook is
+# run interactively by the user; it's set immediately after the prompt hook,
+# and unset as soon as the trace hook is run.
+__bp_preexec_interactive_mode=""
+
+# These arrays are used to add functions to be run before, or after, prompts.
+declare -a precmd_functions
+declare -a preexec_functions
+
+# Trims leading and trailing whitespace from $2 and writes it to the variable
+# name passed as $1
+__bp_trim_whitespace() {
+    local var=${1:?} text=${2:-}
+    text="${text#"${text%%[![:space:]]*}"}"   # remove leading whitespace characters
+    text="${text%"${text##*[![:space:]]}"}"   # remove trailing whitespace characters
+    printf -v "$var" '%s' "$text"
+}
+
+
+# Trims whitespace and removes any leading or trailing semicolons from $2 and
+# writes the resulting string to the variable name passed as $1. Used for
+# manipulating substrings in PROMPT_COMMAND
+__bp_sanitize_string() {
+    local var=${1:?} text=${2:-} sanitized
+    __bp_trim_whitespace sanitized "$text"
+    sanitized=${sanitized%;}
+    sanitized=${sanitized#;}
+    __bp_trim_whitespace sanitized "$sanitized"
+    printf -v "$var" '%s' "$sanitized"
+}
+
+# This function is installed as part of the PROMPT_COMMAND;
+# It sets a variable to indicate that the prompt was just displayed,
+# to allow the DEBUG trap to know that the next command is likely interactive.
+__bp_interactive_mode() {
+    __bp_preexec_interactive_mode="on";
+}
+
+
+# This function is installed as part of the PROMPT_COMMAND.
+# It will invoke any functions defined in the precmd_functions array.
+__bp_precmd_invoke_cmd() {
+    # Save the returned value from our last command, and from each process in
+    # its pipeline. Note: this MUST be the first thing done in this function.
+    __bp_last_ret_value="$?" BP_PIPESTATUS=("${PIPESTATUS[@]}")
+
+    # Don't invoke precmds if we are inside an execution of an "original
+    # prompt command" by another precmd execution loop. This avoids infinite
+    # recursion.
+    if (( __bp_inside_precmd > 0 )); then
+      return
+    fi
+    local __bp_inside_precmd=1
+
+    # Invoke every function defined in our function array.
+    local precmd_function
+    for precmd_function in "${precmd_functions[@]}"; do
+
+        # Only execute this function if it actually exists.
+        # Test existence of functions with: declare -[Ff]
+        if type -t "$precmd_function" 1>/dev/null; then
+            __bp_set_ret_value "$__bp_last_ret_value" "$__bp_last_argument_prev_command"
+            # Quote our function invocation to prevent issues with IFS
+            "$precmd_function"
+        fi
+    done
+
+    __bp_set_ret_value "$__bp_last_ret_value"
+}
+
+# Sets a return value in $?. We may want to get access to the $? variable in our
+# precmd functions. This is available for instance in zsh. We can simulate it in bash
+# by setting the value here.
+__bp_set_ret_value() {
+    return ${1:-}
+}
+
+__bp_in_prompt_command() {
+
+    local prompt_command_array
+    IFS=$'\n;' read -rd '' -a prompt_command_array <<< "${PROMPT_COMMAND:-}"
+
+    local trimmed_arg
+    __bp_trim_whitespace trimmed_arg "${1:-}"
+
+    local command trimmed_command
+    for command in "${prompt_command_array[@]:-}"; do
+        __bp_trim_whitespace trimmed_command "$command"
+        if [[ "$trimmed_command" == "$trimmed_arg" ]]; then
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+# This function is installed as the DEBUG trap.  It is invoked before each
+# interactive prompt display.  Its purpose is to inspect the current
+# environment to attempt to detect if the current command is being invoked
+# interactively, and invoke 'preexec' if so.
+__bp_preexec_invoke_exec() {
+
+    # Save the contents of $_ so that it can be restored later on.
+    # https://stackoverflow.com/questions/40944532/bash-preserve-in-a-debug-trap#40944702
+    __bp_last_argument_prev_command="${1:-}"
+    # Don't invoke preexecs if we are inside of another preexec.
+    if (( __bp_inside_preexec > 0 )); then
+      return
+    fi
+    local __bp_inside_preexec=1
+
+    # Checks if the file descriptor is not standard out (i.e. '1')
+    # __bp_delay_install checks if we're in test. Needed for bats to run.
+    # Prevents preexec from being invoked for functions in PS1
+    if [[ ! -t 1 && -z "${__bp_delay_install:-}" ]]; then
+        return
+    fi
+
+    if [[ -n "${COMP_LINE:-}" ]]; then
+        # We're in the middle of a completer. This obviously can't be
+        # an interactively issued command.
+        return
+    fi
+    if [[ -z "${__bp_preexec_interactive_mode:-}" ]]; then
+        # We're doing something related to displaying the prompt.  Let the
+        # prompt set the title instead of me.
+        return
+    else
+        # If we're in a subshell, then the prompt won't be re-displayed to put
+        # us back into interactive mode, so let's not set the variable back.
+        # In other words, if you have a subshell like
+        #   (sleep 1; sleep 2)
+        # You want to see the 'sleep 2' as a set_command_title as well.
+        if [[ 0 -eq "${BASH_SUBSHELL:-}" ]]; then
+            __bp_preexec_interactive_mode=""
+        fi
+    fi
+
+    if  __bp_in_prompt_command "${BASH_COMMAND:-}"; then
+        # If we're executing something inside our prompt_command then we don't
+        # want to call preexec. Bash prior to 3.1 can't detect this at all :/
+        __bp_preexec_interactive_mode=""
+        return
+    fi
+
+    local this_command
+    this_command=$(
+        export LC_ALL=C
+        HISTTIMEFORMAT= builtin history 1 | sed '1 s/^ *[0-9][0-9]*[* ] //'
+    )
+
+    # Sanity check to make sure we have something to invoke our function with.
+    if [[ -z "$this_command" ]]; then
+        return
+    fi
+
+    # Invoke every function defined in our function array.
+    local preexec_function
+    local preexec_function_ret_value
+    local preexec_ret_value=0
+    for preexec_function in "${preexec_functions[@]:-}"; do
+
+        # Only execute each function if it actually exists.
+        # Test existence of function with: declare -[fF]
+        if type -t "$preexec_function" 1>/dev/null; then
+            __bp_set_ret_value ${__bp_last_ret_value:-}
+            # Quote our function invocation to prevent issues with IFS
+            "$preexec_function" "$this_command"
+            preexec_function_ret_value="$?"
+            if [[ "$preexec_function_ret_value" != 0 ]]; then
+                preexec_ret_value="$preexec_function_ret_value"
+            fi
+        fi
+    done
+
+    # Restore the last argument of the last executed command, and set the return
+    # value of the DEBUG trap to be the return code of the last preexec function
+    # to return an error.
+    # If `extdebug` is enabled a non-zero return value from any preexec function
+    # will cause the user's command not to execute.
+    # Run `shopt -s extdebug` to enable
+    __bp_set_ret_value "$preexec_ret_value" "$__bp_last_argument_prev_command"
+}
+
+__bp_install() {
+    # Exit if we already have this installed.
+    if [[ "${PROMPT_COMMAND:-}" == *"__bp_precmd_invoke_cmd"* ]]; then
+        return 1;
+    fi
+
+    trap '__bp_preexec_invoke_exec "$_"' DEBUG
+
+    # Preserve any prior DEBUG trap as a preexec function
+    local prior_trap=$(sed "s/[^']*'\(.*\)'[^']*/\1/" <<<"${__bp_trap_string:-}")
+    unset __bp_trap_string
+    if [[ -n "$prior_trap" ]]; then
+        eval '__bp_original_debug_trap() {
+          '"$prior_trap"'
+        }'
+        preexec_functions+=(__bp_original_debug_trap)
+    fi
+
+    # Adjust our HISTCONTROL Variable if needed.
+    __bp_adjust_histcontrol
+
+    # Issue #25. Setting debug trap for subshells causes sessions to exit for
+    # backgrounded subshell commands (e.g. (pwd)& ). Believe this is a bug in Bash.
+    #
+    # Disabling this by default. It can be enabled by setting this variable.
+    if [[ -n "${__bp_enable_subshells:-}" ]]; then
+
+        # Set so debug trap will work be invoked in subshells.
+        set -o functrace > /dev/null 2>&1
+        shopt -s extdebug > /dev/null 2>&1
+    fi;
+
+    local existing_prompt_command
+    # Remove setting our trap install string and sanitize the existing prompt command string
+    existing_prompt_command="${PROMPT_COMMAND:-}"
+    existing_prompt_command="${existing_prompt_command//$__bp_install_string[;$'\n']}" # Edge case of appending to PROMPT_COMMAND
+    existing_prompt_command="${existing_prompt_command//$__bp_install_string}"
+    __bp_sanitize_string existing_prompt_command "$existing_prompt_command"
+
+    # Install our hooks in PROMPT_COMMAND to allow our trap to know when we've
+    # actually entered something.
+    PROMPT_COMMAND=$'__bp_precmd_invoke_cmd\n'
+    if [[ -n "$existing_prompt_command" ]]; then
+        PROMPT_COMMAND+=${existing_prompt_command}$'\n'
+    fi;
+    PROMPT_COMMAND+='__bp_interactive_mode'
+
+    # Add two functions to our arrays for convenience
+    # of definition.
+    precmd_functions+=(precmd)
+    preexec_functions+=(preexec)
+
+    # Invoke our two functions manually that were added to $PROMPT_COMMAND
+    __bp_precmd_invoke_cmd
+    __bp_interactive_mode
+}
+
+# Sets an installation string as part of our PROMPT_COMMAND to install
+# after our session has started. This allows bash-preexec to be included
+# at any point in our bash profile.
+__bp_install_after_session_init() {
+    # bash-preexec needs to modify these variables in order to work correctly
+    # if it can't, just stop the installation
+    __bp_require_not_readonly PROMPT_COMMAND HISTCONTROL HISTTIMEFORMAT || return
+
+    local sanitized_prompt_command
+    __bp_sanitize_string sanitized_prompt_command "${PROMPT_COMMAND:-}"
+    if [[ -n "$sanitized_prompt_command" ]]; then
+        PROMPT_COMMAND=${sanitized_prompt_command}$'\n'
+    fi;
+    PROMPT_COMMAND+=${__bp_install_string}
+}
+
+# Run our install so long as we're not delaying it.
+if [[ -z "${__bp_delay_install:-}" ]]; then
+    __bp_install_after_session_init
+fi;
