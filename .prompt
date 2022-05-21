@@ -246,6 +246,10 @@ build_git_prompt() {
           prompt+=$(prompt_append ${is_on_a_tag} "${git_is_on_a_tag}${tag_at_current_commit}")
       fi
 
+       # Remove duplicate spaces
+      firstprompt="${firstprompt/  / }"
+      prompt="${prompt/  / }"
+
       BG=$gray_bg
       FG=$gray_fg
       FG_COLOR=white
