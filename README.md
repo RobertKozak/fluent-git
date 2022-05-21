@@ -20,10 +20,10 @@ This prompt can display, on a line, one or more of the following:
 You can install this custom prompt or theme in bash or zsh shell. 
 
 ## BASH
-copy .prompt to $HOME and add to the end of .bashrc
+copy prompt to $HOME and add to the end of .bashrc
 
 ```bash
-cp .prompt $HOME/.prompt
+cp prompt $HOME/.prompt
 echo "source .prompt" >> $HOME.bashrc
 source $HOME/.bashrc
 ```
@@ -36,7 +36,7 @@ Requires oh-my-zsh to work properly in zsh shell https://ohmyz.sh/#install
 * add ZSH_THEME="fluent-git" to .zshrc
 
 ```bash    
-cp .prompt $ZSH/themes/fluent-git.theme
+cp prompt $ZSH/themes/fluent-git.theme
 echo "ZSH_THEME="fluent-git"" >> $HOME/.zshrc
 source $HOME/.zshrc
 ```
