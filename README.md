@@ -31,9 +31,6 @@ source $HOME/.bashrc
 ## ZSH
 Requires oh-my-zsh to work properly in zsh shell https://ohmyz.sh/#install
 
-```bash
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-```
  
 * add fluent-git.theme to $ZSH/themes
 * add ZSH_THEME="fluent-git" to .zshrc
