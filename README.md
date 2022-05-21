@@ -29,7 +29,8 @@ source $HOME/.bashrc
 ```
 
 ## ZSH
-Requires oh-my-zsh to work properly in zsh shell ![oh-my-zsh](https://github.com/ohmyzsh/ohmyzsh/)
+Requires oh-my-zsh to work properly in zsh shell 
+![oh-my-zsh](https://github.com/ohmyzsh/ohmyzsh/)
 
 ```bash
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
