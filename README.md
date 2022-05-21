@@ -15,18 +15,33 @@ This prompt can display, on a line, one or more of the following:
 * ssh client connection
 
 
+### Installation 
+
+You can install this custom prompt or theme in bash or zsh shell. 
+
 ## BASH
-copy prompt.sh to $HOME and add to the end of .bashrc
+copy .prompt to $HOME and add to the end of .bashrc
 
 ```bash
-source $HOME/prompt.sh
+cp .prompt $HOME/.prompt
+echo "source .prompt" >> $HOME.bashrc
+source $HOME/.bashrc
 ```
 
 ## ZSH
-add fluent-git.theme to $ZSH/themes
+Requires oh-my-zsh to work properly in zsh shell ![oh-my-zsh](https://github.com/ohmyzsh/ohmyzsh/)
+
+```bash
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+```
+ 
+* add fluent-git.theme to $ZSH/themes
+* add ZSH_THEME="fluent-git" to .zshrc
 
 ```bash    
-cp fluent-git.theme $ZSH/themes
+cp .prompt $ZSH/themes/fluent-git.theme
+echo "ZSH_THEME="fluent-git"" >> $HOME/.zshrc
+source $HOME/.zshrc
 ```
 
 ## Example Screenshots
@@ -41,17 +56,25 @@ cp fluent-git.theme $ZSH/themes
 ![Example with error](error.png?raw=true)
 
 
+### NOTE:
+
+For ZSH users you should install oh-my-zsh https://ohmyz.sh/#install
+
+You will need to set up your terminal to use a patched powerline font so the characters in the prompt will display correctly.
+
+You can get pick a font from here: https://github.com/powerline/fonts
+
 
 ## Adding fluent-git prompt to remote machines (bash)
 
-if you want this prompt to be available on machines you ssh into you will need to copy the prompt.sh and .bashrc-ssh file to the server.
+if you want this prompt to be available on machines you ssh into you will need to copy the .prompt file to the server.
 
 1. create alias in .bash_aliases
 
 ```bash
 # when using -P arg: copy .bashrc-ssh file and do ssh else just do ssh
 __ssh(){
-   [[ $@ == *'-P'* ]] && echo "Copying bash profile for Fluent-git Prompt" && scp -q -o LogLevel=QUIET $HOME/.bashrc-ssh $1:/home/$USER/.bashrc
+   [[ $@ == *'-P'* ]] && echo "Copying bash profile for Fluent-git Prompt" && scp -q -o LogLevel=QUIET $HOME/.prompt $1:/home/$USER/.bashrc
   
    /usr/bin/ssh $@
 }
@@ -59,19 +82,13 @@ __ssh(){
 alias ssh="__ssh"
 ```
 
-2. copy .bashrc-ssh to $HOME
-
-```bash
-cp .bashrc-ssh $HOME
-```
-
-3. Restart shell or source .bash_aliases
+2. Restart shell or source .bash_aliases
 
 ```bash
 source $HOME./bash_aliases
 ```
 
-once those steps are done next time you ssh with -P arg it will copy over the .bashrc-ssh file to the remote server as your new .bashrc which contains the new prompt
+once those steps are done next time you ssh with -P arg it will copy over the .prompt to the remote server as your new .bashrc which contains the new prompt
 
 example:
 
