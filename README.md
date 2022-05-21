@@ -29,8 +29,7 @@ source $HOME/.bashrc
 ```
 
 ## ZSH
-Requires oh-my-zsh to work properly in zsh shell 
-![oh-my-zsh](https://github.com/ohmyzsh/ohmyzsh/)
+Requires oh-my-zsh to work properly in zsh shell https://ohmyz.sh/#install
 
 ```bash
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
@@ -58,8 +57,6 @@ source $HOME/.zshrc
 
 
 ### NOTE:
-
-For ZSH users you should install oh-my-zsh https://ohmyz.sh/#install
 
 You will need to set up your terminal to use a patched powerline font so the characters in the prompt will display correctly.
 
