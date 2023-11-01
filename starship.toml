@@ -1,0 +1,125 @@
+add_newline = false
+palette = 'default'
+
+format = """
+$cmd_duration\
+$status\
+${custom.hostname}\
+$username\
+$git_status\
+$git_branch\
+$git_commit\
+${custom.no-git}\
+${custom.kubernetes-dev}\
+${custom.kubernetes-test}\
+${custom.kubernetes-prod}\
+$package\
+$directory\
+$character${custom.warp_friendly_line_break}"""
+
+[cmd_duration]
+disabled = false
+min_time = 2000
+format = '[ $duration ](fg:white bg:green)'
+
+[status]
+success_symbol = '[](fg:white bg:green)[](fg:green bg:white)'
+symbol = '[ $int ](fg:white bg:red)[](fg:red bg:white)'
+format = '$symbol'
+disabled = false
+
+[character]
+disabled = false
+format = '[ » ](fg:bold yellow)'
+
+[custom.hostname]
+disabled = false
+command = "echo $(HOSTNAME) | cut -d'.' -f1"
+style = 'fg:black bg:white'
+when = true
+format = '[ $output ]($style)[](fg:white bg:blue)'
+
+[username]
+disabled = false
+style_user = 'fg:white bg:blue'
+format = '[ $user ]($style)[](fg:blue bg:baby-blue)'
+show_always = true
+
+[git_status]
+disabled = false
+ahead = '\[should push ${count}\]'
+behind = '\[should pull ${count}\]'
+conflicted = '\[merge conflicts ${count}\]'
+renamed = '\[renamed ${count}\]'
+diverged = '\[diverged ${count}\]'
+deleted = '\[deleted ${count}\]'
+modified = '\[modified ${count}\]'
+staged = '\[staged ${count}\]'
+stashed = '\[stashed ${count}\]'
+untracked = '\[untracked ${count}\]'
+typechanged = '\[changed ${count}\]'
+up_to_date = ''
+format = '[$all_status$ahead_behind](fg:white bg:baby-blue)'
+
+[git_branch]
+disabled = false
+always_show_remote = true
+format ='[ $branch ](fg:white bg:baby-blue)[](fg:baby-blue bg:blue)[ $remote_name ](fg:white bg:blue)[](fg:blue bg:white)'
+
+[git_commit]
+disabled = false
+only_detached = true
+format ='[$tag](fg:white bg:baby-blue)[](fg:baby-blue bg:blue)[ Detached $hash ](fg:white bg:blue)[](fg:blue bg:white)'
+
+[custom.no-git]
+disabled = false
+format = '[](fg:white bg:baby-blue)[](fg:baby-blue bg:blue)[](fg:white bg:blue)[](fg:blue bg:white)'
+when = '[ ! $(git rev-parse --is-inside-work-tree) ]'
+
+[custom.kubernetes-dev]
+disabled = false
+command = "$HOME/.config/kubernetes-info.sh"
+style = 'fg:black bg:white'
+when = "kubectl config current-context | grep -Ev 'test|ops|qa|prod'"
+format = '[ $output ]($style)[](fg:white bg:gray)'
+
+[custom.kubernetes-test]
+disabled = false
+command = "$HOME/.config/kubernetes-info.sh"
+style = 'fg:black bg:yellow'
+when = "kubectl config current-context| grep -E 'test|qa|ops'"
+format = '[](fg:white bg:yellow)[ $output ]($style)[](fg:yellow bg:gray)'
+
+[custom.kubernetes-prod]
+disabled = false
+command = "$HOME/.config/kubernetes-info.sh"
+style = 'fg:white bg:red'
+when = 'kubectl config current-context | grep -q prod'
+format = '[](fg:white bg:red)[ $output ]($style)[](fg:red bg:gray)'
+
+[package]
+disabled = true
+format = '[ ($symbol$version) ](fg:white bg:magenta)[](fg:magenta bg:gray)'
+
+[directory]
+disabled = false
+truncation_symbol = '…/'
+truncate_to_repo = false
+format = '[ $path ](fg:white bg:gray)[](fg:gray)'
+
+[custom.warp_friendly_line_break]
+description = 'Only inserts a line break when not using Warp'
+when = '[ "$TERM_PROGRAM" != "WarpTerminal" ]'
+format = "\n"
+
+[palettes.default]
+baby-blue = 'bright-blue'
+gray = 'bright-black'
+cyan = "#00a3b7"
+yellow = "#ffda03"
+black = "#000000"
+red = "#ff3c29"
+magenta = "#88658d"
+blue = "#265fe7"
+white = "#dbded8"
+green = "#00a722"
